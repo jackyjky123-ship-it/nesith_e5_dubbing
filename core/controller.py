@@ -28,7 +28,7 @@ class TTSWorkerThread(QThread):
         self,
         text: str,
         language: str = "auto",
-        mode: str = "clone",
+        mode: str = "auto",
         ref_audio_path: Optional[str] = None,
         ref_text: Optional[str] = None,
         preset_name: Optional[str] = None,

@@ -47,7 +47,6 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "tts_default_quality_steps": 8,      # 4 to 32 steps (8 is balanced for CPU)
     "tts_default_speed": 1.0,            # 0.5 to 2.0
     "export_folder": EXPORTS_DIR,
-    "last_reference_clip": os.path.join(ASSETS_DIR, "phanith_speaker.wav"),
 }
 
 

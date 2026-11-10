@@ -15,7 +15,6 @@ from ui.styles import (
     GLOBAL_STYLESHEET, COLOR_PRIMARY, COLOR_PRIMARY_LIGHT,
     COLOR_BG_CARD, COLOR_BORDER, COLOR_TEXT_PRIMARY, COLOR_TEXT_SECONDARY
 )
-from ui.dub_tab import DubVideoTab
 from ui.tts_tab import TextToSpeechTab
 from ui.settings_tab import SettingsTab
 
@@ -48,24 +47,15 @@ class MainWindow(QMainWindow):
 
         # 2. Main Stacked Content Pages
         self.stack = QStackedWidget()
-        self.dub_tab = DubVideoTab()
         self.tts_tab = TextToSpeechTab()
         self.settings_tab = SettingsTab()
 
-        self.stack.addWidget(self.dub_tab)
         self.stack.addWidget(self.tts_tab)
         self.stack.addWidget(self.settings_tab)
-
-        # Connect inter-tab signals
-        self.tts_tab.useInDubClicked.connect(self.on_tts_use_in_dub)
 
         root_layout.addWidget(self.stack)
 
         # Default to Text to Speech tab
-        self.switch_tab(1)
-
-    def on_tts_use_in_dub(self, audio_path: str, text: str):
-        """Switches to Dub video tab when TTS audio is sent to dubbing."""
         self.switch_tab(0)
 
     def create_header_bar(self) -> QFrame:
@@ -119,9 +109,8 @@ class MainWindow(QMainWindow):
 
         self.nav_buttons = []
         tabs = [
-            ("Dub video", 0),
-            ("Text to speech", 1),
-            ("Settings", 2)
+            ("Text to speech", 0),
+            ("Settings", 1)
         ]
 
         for title, idx in tabs:
@@ -152,13 +141,13 @@ class MainWindow(QMainWindow):
 
         layout.addLayout(status_box)
 
-        self.update_nav_styles(1)
+        self.update_nav_styles(0)
 
         return header
 
     def switch_tab(self, index: int):
         prev_index = self.stack.currentIndex()
-        if prev_index == 1 and index != 1:
+        if prev_index == 0 and index != 0:
             # Free TTS model RAM when leaving the TTS Studio (AGENT.md Rule 3)
             try:
                 from core.tts_engine import tts_manager

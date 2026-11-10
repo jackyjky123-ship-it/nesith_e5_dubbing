@@ -97,6 +97,22 @@ class TestPhase2TTSEngine(unittest.TestCase):
         self.assertNotIn("Linux", trans)
         self.assertNotIn("Developer", trans)
 
+        # Test improved speech mixing vocabulary
+        mixed_sample = "speech natural quality language mixed work word doesn't know like make 25"
+        mixed_trans = prepare_text_for_mms_khmer(mixed_sample)
+        self.assertIn("ស្ពីច", mixed_trans)
+        self.assertIn("ណេតឆឺរ៉ល", mixed_trans)
+        self.assertIn("ខ្វាលីធី", mixed_trans)
+        self.assertIn("ឡេងហ្គ្វិច", mixed_trans)
+        self.assertIn("ម៉ិកស៍", mixed_trans)
+        self.assertIn("វើក", mixed_trans)
+        self.assertIn("វើត", mixed_trans)
+        self.assertIn("ដាសសិន", mixed_trans)
+        self.assertIn("ណូ", mixed_trans)
+        self.assertIn("ឡាយខ៍", mixed_trans)
+        self.assertIn("មេក", mixed_trans)
+        self.assertIn("ម្ភៃប្រាំ", mixed_trans)
+
     def test_compute_waveform_bars(self):
         # Sine wave
         t = np.linspace(0, 1, 16000)
@@ -141,6 +157,38 @@ class TestPhase2TTSEngine(unittest.TestCase):
             os.remove(test_wav_export)
         if os.path.exists(test_mp3_export):
             os.remove(test_mp3_export)
+
+    def test_native_english_and_bilingual_synthesis(self):
+        # English phrases synthesized through Khmer phonetic transliteration
+        en_res = tts_manager.synthesize(
+            text="Hello world, clear speech."
+        )
+        self.assertIsInstance(en_res, TTSResult)
+        self.assertEqual(en_res.engine_name, "mms_khmer")
+        self.assertGreater(en_res.duration_seconds, 0.2)
+
+        # Bilingual mixed text synthesized in single cohesive voice
+        bi_res = tts_manager.synthesize(
+            text="សួស្តី Welcome to speech studio"
+        )
+        self.assertIsInstance(bi_res, TTSResult)
+        self.assertEqual(bi_res.engine_name, "mms_khmer")
+        self.assertGreater(bi_res.duration_seconds, 0.5)
+
+        # Pure Khmer test
+        km_res = tts_manager.synthesize(
+            text="សួស្តីកម្ពុជា"
+        )
+        self.assertIsInstance(km_res, TTSResult)
+        self.assertEqual(km_res.engine_name, "mms_khmer")
+        self.assertGreater(km_res.duration_seconds, 0.2)
+
+        # User's exact technical bilingual script synthesized in unified voice
+        complex_script = "PHP គឺជា Programming Language ដែលយើងប្រើដើម្បីបង្កើត Backend Website ដូចជា Login, Register និង Database System។"
+        complex_res = tts_manager.synthesize(complex_script)
+        self.assertIsInstance(complex_res, TTSResult)
+        self.assertEqual(complex_res.engine_name, "mms_khmer")
+        self.assertGreater(complex_res.duration_seconds, 5.0)
 
     def test_memory_unloading(self):
         # Ensure unload_model clears model reference
@@ -196,25 +244,17 @@ class TestPhase2UI(unittest.TestCase):
         self.assertIsNotNone(self.tab.generate_btn)
         self.assertIsNotNone(self.tab.mode_toggle)
         self.assertIsNotNone(self.tab.recent_list)
+        # Ensure manual language dropdown is removed in favor of automatic detection
+        self.assertFalse(hasattr(self.tab, "lang_combo"))
 
     def test_mode_switching(self):
-        # Index 0: Clone voice
+        # Index 0: Auto
         self.tab.mode_toggle.set_active_index(0)
-        self.assertFalse(self.tab.ref_clip_box.isHidden())
-        self.assertFalse(self.tab.ref_trans_input.isHidden())
         self.assertTrue(self.tab.preset_box.isHidden())
 
         # Index 1: Preset
         self.tab.mode_toggle.set_active_index(1)
-        self.assertTrue(self.tab.ref_clip_box.isHidden())
-        self.assertTrue(self.tab.ref_trans_input.isHidden())
         self.assertFalse(self.tab.preset_box.isHidden())
-
-        # Index 2: Auto
-        self.tab.mode_toggle.set_active_index(2)
-        self.assertTrue(self.tab.ref_clip_box.isHidden())
-        self.assertTrue(self.tab.ref_trans_input.isHidden())
-        self.assertTrue(self.tab.preset_box.isHidden())
 
     def test_waveform_widget_set_audio(self):
         dummy_wav = os.path.join(TEMP_DIR, "test_wave.wav")
@@ -234,8 +274,8 @@ class TestPhase2UI(unittest.TestCase):
     def test_main_window_integration(self):
         main_win = MainWindow()
         self.assertIsNotNone(main_win.tts_tab)
-        self.assertIsNotNone(main_win.dub_tab)
         self.assertIsNotNone(main_win.settings_tab)
+        self.assertFalse(hasattr(main_win, "dub_tab"))
 
 
 if __name__ == "__main__":

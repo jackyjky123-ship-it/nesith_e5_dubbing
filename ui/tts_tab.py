@@ -36,28 +36,15 @@ from core.controller import TTSWorkerThread, load_recent_tts, add_recent_tts
 
 
 class TextToSpeechTab(QWidget):
-    """Tab 2: Standalone Text-to-Speech Studio."""
-    useInDubClicked = Signal(str, str)  # (audio_path, text)
+    """Standalone Text-to-Speech Studio."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        cfg = load_config()
-        saved_clip = cfg.get("last_reference_clip")
-        phanith_clip = os.path.join(ASSETS_DIR, "phanith_speaker.wav")
-        sample_clip = os.path.join(ASSETS_DIR, "sample_speaker.wav")
-        if saved_clip and os.path.exists(saved_clip):
-            self.current_ref_clip = saved_clip
-        elif os.path.exists(phanith_clip):
-            self.current_ref_clip = phanith_clip
-        else:
-            self.current_ref_clip = sample_clip
-
         self.current_result: Optional[TTSResult] = None
         self.worker: Optional[TTSWorkerThread] = None
 
         self.init_ui()
-        self.on_mode_changed(2)
-        self.load_initial_ref_clip()
+        self.on_mode_changed(0)
         self.refresh_recent_list()
 
     def init_ui(self):
@@ -106,22 +93,26 @@ class TextToSpeechTab(QWidget):
         layout.setContentsMargins(18, 16, 18, 16)
         layout.setSpacing(10)
 
-        # Header Row: "Text to speak" (Left) + Language Selector (Right)
+        # Header Row: "Text to speak" (Left) + Auto-detect Badge (Right)
         header_row = QHBoxLayout()
         title = QLabel("Text to speak")
         title.setFont(QFont("Segoe UI", 11, QFont.Bold))
         header_row.addWidget(title)
         header_row.addStretch()
 
-        lang_label = QLabel("Language")
-        lang_label.setStyleSheet("color: #6B7280; font-size: 12px; font-weight: 500;")
-        header_row.addWidget(lang_label)
-
-        self.lang_combo = QComboBox()
-        self.lang_combo.addItems(["Khmer", "English", "Auto-detect"])
-        self.lang_combo.setCurrentText("Khmer")
-        self.lang_combo.setFixedWidth(120)
-        header_row.addWidget(self.lang_combo)
+        auto_badge = QLabel("Auto-detect: Khmer & English")
+        auto_badge.setStyleSheet("""
+            QLabel {
+                color: #0F6B58;
+                background-color: #ECFDF5;
+                border: 1px solid #A7F3D0;
+                border-radius: 12px;
+                padding: 3px 10px;
+                font-size: 11px;
+                font-weight: 600;
+            }
+        """)
+        header_row.addWidget(auto_badge)
 
         layout.addLayout(header_row)
 
@@ -184,25 +175,30 @@ class TextToSpeechTab(QWidget):
         layout.setContentsMargins(18, 16, 18, 16)
         layout.setSpacing(10)
 
-        # Header Row: Title & Engine dropdown
+        # Header Row: Title & Engine Badge
         header_row = QHBoxLayout()
         title = QLabel("Voice")
         title.setFont(QFont("Segoe UI", 11, QFont.Bold))
         header_row.addWidget(title)
         header_row.addStretch()
 
-        self.engine_combo = QComboBox()
-        self.engine_combo.addItems([
-            "Meta MMS-TTS Khmer (Local)",
-            "Meta MMS-TTS (Bilingual Transliteration)"
-        ])
-        self.engine_combo.setFixedWidth(220)
-        self.engine_combo.setStyleSheet("font-size: 11px;")
-        header_row.addWidget(self.engine_combo)
+        engine_badge = QLabel("Meta MMS-TTS Khmer")
+        engine_badge.setStyleSheet("""
+            QLabel {
+                color: #0F6B58;
+                background-color: #ECFDF5;
+                border: 1px solid #A7F3D0;
+                border-radius: 6px;
+                padding: 3px 8px;
+                font-size: 11px;
+                font-weight: 500;
+            }
+        """)
+        header_row.addWidget(engine_badge)
         layout.addLayout(header_row)
 
-        # Mode Selector: [Clone voice | Preset | Auto] (Default to Auto for fast native TTS)
-        self.mode_toggle = SegmentedTab(["Clone voice", "Preset", "Auto"], initial_index=2)
+        # Mode Selector: [Auto | Preset]
+        self.mode_toggle = SegmentedTab(["Auto", "Preset"], initial_index=0)
         self.mode_toggle.setStyleSheet("""
             QWidget {
                 background-color: #F3F4F6;
@@ -211,47 +207,6 @@ class TextToSpeechTab(QWidget):
         """)
         self.mode_toggle.tabChanged.connect(self.on_mode_changed)
         layout.addWidget(self.mode_toggle)
-
-        # Speaker Reference Clip Box (Clone voice mode)
-        self.ref_clip_box = QFrame()
-        self.ref_clip_box.setStyleSheet("""
-            QFrame {
-                background-color: #F9FAFB;
-                border: 1px dashed #D1D5DB;
-                border-radius: 8px;
-                padding: 4px;
-            }
-        """)
-        ref_layout = QHBoxLayout(self.ref_clip_box)
-        ref_layout.setContentsMargins(12, 8, 12, 8)
-
-        clip_info = QVBoxLayout()
-        clip_info.setSpacing(2)
-        self.lbl_clip_name = QLabel("speaker_ref.wav")
-        self.lbl_clip_name.setFont(QFont("Segoe UI", 11, QFont.DemiBold))
-        self.lbl_clip_meta = QLabel("8 seconds, mono")
-        self.lbl_clip_meta.setStyleSheet("color: #6B7280; font-size: 11px;")
-        clip_info.addWidget(self.lbl_clip_name)
-        clip_info.addWidget(self.lbl_clip_meta)
-        ref_layout.addLayout(clip_info)
-
-        ref_layout.addStretch()
-
-        change_clip_btn = QPushButton("Change clip")
-        change_clip_btn.setProperty("class", "SecondaryButton")
-        change_clip_btn.clicked.connect(self.choose_reference_clip)
-        ref_layout.addWidget(change_clip_btn)
-
-        layout.addWidget(self.ref_clip_box)
-
-        # Reference Transcript Input (Clone voice mode)
-        self.ref_trans_label = QLabel("Reference transcript (optional, auto-filled if empty)")
-        self.ref_trans_label.setStyleSheet("color: #6B7280; font-size: 11px; font-weight: 500;")
-        layout.addWidget(self.ref_trans_label)
-
-        self.ref_trans_input = QLineEdit()
-        self.ref_trans_input.setPlaceholderText("Leave empty to auto-transcribe...")
-        layout.addWidget(self.ref_trans_input)
 
         # Preset Voice Dropdown (Preset mode, initially hidden)
         self.preset_box = QWidget()
@@ -404,11 +359,6 @@ class TextToSpeechTab(QWidget):
         self.mp3_btn.clicked.connect(self.save_as_mp3)
         actions_row.addWidget(self.mp3_btn)
 
-        self.dub_btn = QPushButton("Use in a dub")
-        self.dub_btn.setProperty("class", "SecondaryButton")
-        self.dub_btn.clicked.connect(self.on_use_in_dub_clicked)
-        self.dub_btn.setVisible(False)
-
         actions_row.addStretch()
         layout.addLayout(actions_row)
 
@@ -461,13 +411,8 @@ class TextToSpeechTab(QWidget):
     # Event Handlers & Core Methods
     # -------------------------------------------------------------------------
     def on_mode_changed(self, index: int):
-        """Switches between Clone voice (0), Preset (1), and Auto (2)."""
-        is_clone = (index == 0)
+        """Switches between Auto (0) and Preset (1)."""
         is_preset = (index == 1)
-
-        self.ref_clip_box.setVisible(is_clone)
-        self.ref_trans_label.setVisible(is_clone)
-        self.ref_trans_input.setVisible(is_clone)
         self.preset_box.setVisible(is_preset)
 
     def on_speed_changed(self, v: int):
@@ -492,50 +437,6 @@ class TextToSpeechTab(QWidget):
         tts_manager.unload_model()
         self.latency_label.setText("Model unloaded · RAM freed")
 
-    def load_initial_ref_clip(self):
-        """Loads and inspects the default reference audio clip."""
-        if os.path.exists(self.current_ref_clip):
-            self.update_clip_display(self.current_ref_clip)
-        else:
-            self.lbl_clip_name.setText("No clip selected")
-            self.lbl_clip_meta.setText("Click 'Change clip' to select a reference audio")
-
-    def update_clip_display(self, clip_path: str):
-        """Reads audio duration and channels to display in the UI card and auto-populates reference text."""
-        self.current_ref_clip = clip_path
-        filename = os.path.basename(clip_path)
-        self.lbl_clip_name.setText(filename)
-        try:
-            info = sf.info(clip_path)
-            chan_str = "mono" if info.channels == 1 else "stereo"
-            self.lbl_clip_meta.setText(f"{info.duration:.1f} seconds, {chan_str}")
-        except Exception:
-            self.lbl_clip_meta.setText("Audio clip loaded")
-
-        # Auto-populate reference transcript if known or if empty
-        lower_name = filename.lower()
-        if "phanith" in lower_name:
-            self.ref_trans_input.setText("There's a lot of people on the street, but they don't have a lot of people on the street.")
-        elif "sample_speaker" in lower_name:
-            self.ref_trans_input.setText("Hello, welcome to KhmerTTS, an offline speech studio.")
-
-    def choose_reference_clip(self):
-        """Prompts user to select a custom voice reference clip."""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select Speaker Reference Audio",
-            ASSETS_DIR,
-            "Audio Files (*.wav *.mp3 *.ogg *.flac *.m4a)"
-        )
-        if file_path:
-            self.update_clip_display(file_path)
-            try:
-                cfg = load_config()
-                cfg["last_reference_clip"] = file_path
-                save_config(cfg)
-            except Exception:
-                pass
-
     def update_char_count(self):
         count = len(self.text_edit.toPlainText())
         self.char_count_label.setText(f"{count} of 2,000 characters")
@@ -556,24 +457,15 @@ class TextToSpeechTab(QWidget):
             return
 
         mode_idx = self.mode_toggle.active_index
-        mode_map = {0: "clone", 1: "preset", 2: "auto"}
-        mode = mode_map.get(mode_idx, "clone")
+        mode = "preset" if mode_idx == 1 else "auto"
 
-        lang_text = self.lang_combo.currentText().lower()
-        if "khmer" in lang_text:
-            lang = "km"
-        elif "english" in lang_text:
-            lang = "en"
-        else:
-            lang = "auto"
-
-        # Resolve engine selection (Meta MMS-TTS)
+        # Language is automatically detected (Khmer, English, or mixed bilingual)
+        lang = "auto"
         engine_override = "mms_khmer"
 
         preset_name = self.preset_combo.currentText() if mode == "preset" else None
         speed = self.speed_slider.value() / 100.0
         quality_steps = self.quality_slider.value()
-        ref_text = self.ref_trans_input.text().strip()
 
         # UI state: Generating
         self.generate_btn.setEnabled(False)
@@ -584,8 +476,8 @@ class TextToSpeechTab(QWidget):
             text=text,
             language=lang,
             mode=mode,
-            ref_audio_path=self.current_ref_clip if mode == "clone" else None,
-            ref_text=ref_text if mode == "clone" else None,
+            ref_audio_path=None,
+            ref_text=None,
             preset_name=preset_name,
             speed=speed,
             quality_steps=quality_steps,
@@ -666,22 +558,6 @@ class TextToSpeechTab(QWidget):
                 QMessageBox.information(self, "Saved", f"MP3 successfully exported to:\n{save_path}")
             except Exception as e:
                 QMessageBox.critical(self, "Export Error", f"Failed to save MP3: {e}")
-
-    def on_use_in_dub_clicked(self):
-        """Emits signal to pass audio to Dubbing tab."""
-        if not self.current_result or not os.path.exists(self.current_result.temp_wav_path):
-            QMessageBox.information(self, "No Audio", "Please generate speech first.")
-            return
-
-        self.useInDubClicked.emit(
-            self.current_result.temp_wav_path,
-            self.current_result.text
-        )
-        QMessageBox.information(
-            self,
-            "Dub Studio",
-            "This generated audio has been forwarded for video dubbing!"
-        )
 
     def refresh_recent_list(self):
         """Reloads the recent items list from disk."""

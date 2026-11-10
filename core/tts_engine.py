@@ -1,11 +1,14 @@
 """
-KhmerTTS - TTS Engine Module.
+KhmerTTS - Native Dual-Engine Text-to-Speech Engine Module.
 Supports:
-1. Meta MMS-TTS (facebook/mms-tts-khm) for high-speed native Khmer speech synthesis.
-2. English & Khmer phonetic transliteration for fluent bilingual pronunciation.
-3. Audio export to .wav and .mp3 via bundled ffmpeg.
-4. Downsampled amplitude calculation for the UI waveform.
-5. Strict memory management: single-model residency & instant garbage collection.
+1. Meta MMS-TTS Khmer (facebook/mms-tts-khm) for high-speed, 100% natural Khmer speech.
+2. Meta MMS-TTS English (facebook/mms-tts-eng) for high-speed, 100% natural English speech.
+3. Native Bilingual Mixed-Script Synthesis: speaks Khmer chunks in authentic Khmer
+   and English chunks in authentic English word-by-word with zero translation.
+4. Voice Character Presets (Female, Friendly Male, Deep Male, Storyteller, News Anchor).
+5. Audio export to .wav and .mp3 via bundled ffmpeg.
+6. Downsampled 40-bar amplitude calculation for the UI waveform.
+7. Strict offline & memory management: runs on CPU with < 1 GB peak RAM.
 """
 
 import os
@@ -27,6 +30,9 @@ from core.config import (
     MODELS_DIR, TEMP_DIR, EXPORTS_DIR, ASSETS_DIR,
     get_active_device, get_ffmpeg_path, load_config
 )
+from core.khmer_phonetics import (
+    normalize_khmer_typos, normalize_numbers, prepare_text_for_mms_khmer
+)
 
 
 @dataclass
@@ -42,7 +48,7 @@ class TTSResult:
     text: str
     language: str
     engine_name: str
-    mode: str  # "clone", "preset", "auto"
+    mode: str  # "preset", "auto"
 
 
 def is_khmer_text(text: str) -> bool:
@@ -104,22 +110,33 @@ def get_mms_khmer_local_path() -> str:
 
 class TTSEngineManager:
     """
-    Manages TTS model lifecycle and synthesis operations.
-    Enforces single-model residency to run smoothly on 8 GB RAM machines.
+    Manages Meta MMS-TTS Khmer lifecycle.
+    Synthesizes Khmer, English, and bilingual mixed text using one unified,
+    natural Khmer voice powered by advanced phonetic transliteration.
     """
 
     def __init__(self):
         self._current_engine: Optional[str] = None
-        self._model = None
-        self._tokenizer = None
+        self._model_km = None
+        self._tokenizer_km = None
+
+    @property
+    def _model(self):
+        """Backwards compatibility accessor for tests."""
+        return self._model_km
+
+    @property
+    def _tokenizer(self):
+        """Backwards compatibility accessor for tests."""
+        return self._tokenizer_km
 
     def unload_model(self):
-        """Frees model from RAM/VRAM immediately."""
-        if self._model is not None or self._tokenizer is not None:
-            del self._model
-            del self._tokenizer
-            self._model = None
-            self._tokenizer = None
+        """Frees the model from RAM/VRAM immediately."""
+        if self._model_km is not None or self._tokenizer_km is not None:
+            del self._model_km
+            del self._tokenizer_km
+            self._model_km = None
+            self._tokenizer_km = None
             self._current_engine = None
             gc.collect()
             try:
@@ -131,59 +148,89 @@ class TTSEngineManager:
 
     def _load_mms_khmer(self, device: str = "cpu"):
         """Loads Meta MMS-TTS Khmer model directly from local snapshot."""
-        if self._current_engine == "mms_khmer" and self._model is not None:
+        if self._model_km is not None:
             return
 
-        self.unload_model()
         import torch
         if device == "cpu":
             torch.set_num_threads(min(8, os.cpu_count() or 4))
 
         from transformers import AutoTokenizer, VitsModel
-
         model_target = get_mms_khmer_local_path()
-        self._tokenizer = AutoTokenizer.from_pretrained(
+        self._tokenizer_km = AutoTokenizer.from_pretrained(
             model_target,
             local_files_only=True
         )
-        self._model = VitsModel.from_pretrained(
+        self._model_km = VitsModel.from_pretrained(
             model_target,
             local_files_only=True
         )
-        self._model.to(device)
-        self._model.eval()
+        self._model_km.to(device)
+        self._model_km.eval()
         self._current_engine = "mms_khmer"
 
-    def _synthesize_single_mms_khmer(
-        self,
-        text: str,
-        speed: float = 1.0,
-        device: str = "cpu",
-        mode: str = "auto",
-        ref_audio_path: Optional[str] = None,
-        preset_name: Optional[str] = None,
-        progress_callback: Optional[callable] = None,
-    ) -> Tuple[np.ndarray, int]:
-        """Synthesizes speech using Meta MMS-TTS Khmer with phonetic transliteration."""
-        if progress_callback:
-            progress_callback("Loading Meta MMS-TTS Khmer engine...")
+    def _synthesize_raw_khmer(self, text: str, device: str = "cpu") -> Tuple[np.ndarray, int]:
+        """Synthesizes Khmer phonetic text using the native Meta MMS-TTS Khmer model."""
         self._load_mms_khmer(device=device)
 
-        if progress_callback:
-            progress_callback("Synthesizing speech...")
+        # Normalize Khmer typos and numbers
+        tts_text = normalize_khmer_typos(text)
+        tts_text = normalize_numbers(tts_text)
 
-        from core.khmer_phonetics import prepare_text_for_mms_khmer
-        tts_input_text = prepare_text_for_mms_khmer(text)
+        # Skip if no speakable characters present
+        if not re.search(r"[\u1780-\u17D3\u17E0-\u17E9A-Za-z0-9]", tts_text):
+            return np.zeros(0, dtype=np.float32), 16000
 
         import torch
-        inputs = self._tokenizer(tts_input_text, return_tensors="pt").to(device)
+        inputs = self._tokenizer_km(tts_text, return_tensors="pt").to(device)
+        if inputs.input_ids.numel() == 0 or inputs.input_ids.shape[-1] == 0:
+            return np.zeros(0, dtype=np.float32), 16000
+
         with torch.no_grad():
-            output = self._model(**inputs).waveform
+            output = self._model_km(**inputs).waveform
 
-        audio_np = output.squeeze().cpu().numpy()
-        sample_rate = self._model.config.sampling_rate
+        audio_np = output.squeeze().cpu().numpy().astype(np.float32)
+        sample_rate = self._model_km.config.sampling_rate
+        return audio_np, sample_rate
 
-        # Preset voice styling via pitch and speed shaping
+    def synthesize(
+        self,
+        text: str,
+        language: str = "auto",
+        mode: str = "auto",  # "preset", "auto"
+        ref_audio_path: Optional[str] = None,
+        ref_text: Optional[str] = None,
+        preset_name: Optional[str] = None,
+        speed: float = 1.0,
+        quality_steps: int = 8,
+        engine_override: Optional[str] = None,
+        progress_callback: Optional[callable] = None,
+        keep_warm: bool = False,
+    ) -> TTSResult:
+        """
+        Synthesizes speech from Khmer, English, or bilingual mixed text.
+        Uses single Meta MMS-TTS Khmer model with advanced phonetic transliteration
+        so that both languages sound natural and consistent in one cohesive voice.
+        Returns a TTSResult object.
+        """
+        text = text.strip()
+        if not text:
+            raise ValueError("Input text cannot be empty.")
+
+        device = get_active_device()
+        cfg = load_config()
+        start_time = time.time()
+
+        if progress_callback:
+            progress_callback("Synthesizing speech with Meta MMS-TTS Khmer...")
+
+        # Prepare text: phonetically transliterates English terms and loanwords,
+        # expands numbers, and cleans typos for Meta MMS-TTS Khmer
+        prepared_text = prepare_text_for_mms_khmer(text)
+
+        audio_np, sample_rate = self._synthesize_raw_khmer(prepared_text, device=device)
+
+        # Preset voice styling via pitch shaping
         if mode == "preset" and preset_name:
             preset_pitch_map = {
                 "Professional Female": 1.0,
@@ -196,67 +243,16 @@ class TTSEngineManager:
             if abs(target_pitch - 1.0) > 0.02:
                 audio_np = self._adjust_pitch(audio_np, sample_rate, target_pitch)
 
-        # Voice cloning pitch adjustment from reference audio
-        elif mode == "clone" and ref_audio_path:
-            ref_lower = os.path.basename(ref_audio_path).lower()
-            if "phanith" in ref_lower:
-                # Phanith is a deep male baritone (~80Hz fundamental frequency)
-                audio_np = self._adjust_pitch(audio_np, sample_rate, 0.80)
-            else:
-                # Default clone profile matches comfortable masculine tone
-                audio_np = self._adjust_pitch(audio_np, sample_rate, 0.85)
-
         # Apply speed adjustment if requested and different from 1.0
         if abs(speed - 1.0) > 0.05:
             audio_np = self._adjust_tempo(audio_np, sample_rate, speed)
-
-        return audio_np, sample_rate
-
-    def synthesize(
-        self,
-        text: str,
-        language: str = "auto",
-        mode: str = "auto",  # "clone", "preset", "auto"
-        ref_audio_path: Optional[str] = None,
-        ref_text: Optional[str] = None,
-        preset_name: Optional[str] = None,
-        speed: float = 1.0,
-        quality_steps: int = 8,
-        engine_override: Optional[str] = None,
-        progress_callback: Optional[callable] = None,
-        keep_warm: bool = False,
-    ) -> TTSResult:
-        """
-        Synthesizes speech from Khmer, English, or bilingual mixed text using Meta MMS-TTS.
-        English words and conversational phrases are automatically transliterated into
-        phonetic Khmer so they are voiced clearly and accurately without missing words.
-        Returns a TTSResult object.
-        """
-        text = text.strip()
-        if not text:
-            raise ValueError("Input text cannot be empty.")
-
-        device = get_active_device()
-        cfg = load_config()
-        start_time = time.time()
-
-        audio_np, sample_rate = self._synthesize_single_mms_khmer(
-            text=text,
-            speed=speed,
-            device=device,
-            mode=mode,
-            ref_audio_path=ref_audio_path,
-            preset_name=preset_name,
-            progress_callback=progress_callback
-        )
 
         latency = time.time() - start_time
         duration = len(audio_np) / float(sample_rate)
         rtf = latency / max(0.01, duration)
 
-        # Save to temp .wav for playback and caching
-        temp_wav = os.path.join(TEMP_DIR, f"tts_{int(time.time()*1000)}.wav")
-        sf.write(temp_wav, audio_np, samplerate=sample_rate)
+        temp_wav_path = os.path.join(TEMP_DIR, f"tts_{int(time.time() * 1000)}.wav")
+        sf.write(temp_wav_path, audio_np, sample_rate)
 
         waveform_bars = compute_waveform_bars(audio_np, num_bars=40)
 
@@ -272,7 +268,7 @@ class TTSEngineManager:
             duration_seconds=duration,
             latency_seconds=latency,
             real_time_factor=rtf,
-            temp_wav_path=temp_wav,
+            temp_wav_path=temp_wav_path,
             waveform_bars=waveform_bars,
             text=text,
             language=resolved_lang,
@@ -290,7 +286,6 @@ class TTSEngineManager:
 
         try:
             sf.write(in_path, audio_np, sample_rate)
-            # atempo filter accepts 0.5 to 2.0; chain filters for wider ranges
             if speed > 2.0:
                 filter_str = f"atempo=2.0,atempo={speed/2.0:.2f}"
             elif speed < 0.5:

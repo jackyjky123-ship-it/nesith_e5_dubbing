@@ -1,21 +1,21 @@
 # KhmerTTS: English and Khmer Text-to-Speech Desktop Studio
 
-A lightweight, 100% offline desktop application for Khmer and English text-to-speech synthesis using Meta MMS-TTS with phonetic transliteration.
+A lightweight, 100% offline desktop application for Khmer and English text-to-speech synthesis using single Meta MMS-TTS Khmer neural engine (`facebook/mms-tts-khm`) with advanced phonetic transliteration.
 
 ## 1. Goals
 
 - **Text-to-Speech Studio**: Enter Khmer, English, or mixed bilingual text and generate clear, natural speech audio.
+- **Unified Single-Voice Speech**: Speaks both Khmer and English in one consistent, natural voice using Meta MMS-TTS Khmer without artificial model swapping or voice mismatched timbres. English technical terms, words, acronyms, and numbers are phonetically mapped into authentic Khmer script.
 - **Audio Export**: Export generated speech to `.wav` and `.mp3` (with bitrate options) using bundled ffmpeg.
 - **Interactive Waveform Player**: Visualize real audio amplitude bars with seek-on-click, live playback progress, and timestamp counters.
 - **Voice Character Presets & Pitch Styling**: Offers presets (Professional Female, Friendly Male, Deep Male, Warm Storyteller, News Anchor) as well as speed and pitch shaping.
-- **Bilingual & Loanword Pronunciation**: Built-in Khmer phonetic transliteration engine ensures English words, technical terms, brand names, and everyday conversational phrases are pronounced smoothly without skipped words.
 - **Runs on modest hardware**: Runs entirely on CPU with < 1 GB peak RAM and low latency (< 1s RTF) on modest laptops (Intel i7-8750H / 8 GB RAM).
 
 ## 2. Important facts and licensing
 
-- **Engine**: Meta MMS-TTS Khmer (`facebook/mms-tts-khm`) based on the VITS architecture. It is compact (~139 MB) and requires no GPU.
-- **Phonetic Transliteration**: Bridges English terms into phonetic Khmer graphemes so MMS-TTS speaks both languages naturally.
-- **Licensing**: Meta MMS-TTS Khmer is licensed under CC-BY-NC-4.0 (free for personal and non-commercial use). PySide6 is LGPLv3. ffmpeg is LGPL/GPL.
+- **Engine**: Meta MMS-TTS Khmer (`facebook/mms-tts-khm`, 139 MB) based on VITS architecture. Requires no GPU.
+- **Phonetic Transliteration**: Enables Meta MMS-TTS Khmer to fluently speak English words, web/programming technical jargon, conversational phrases, acronyms, and numbers in a single cohesive voice.
+- **Licensing**: Meta MMS-TTS is licensed under CC-BY-NC-4.0 (free for personal and non-commercial use). PySide6 is LGPLv3. ffmpeg is LGPL/GPL.
 - **No Video Dubbing / No OmniVoice**: OmniVoice and video dubbing pipelines (ASR, machine translation) are removed to keep the project focused, lightweight, and responsive.
 
 ## 3. Everything stays inside the project folder
@@ -48,9 +48,8 @@ Meta MMS-TTS Khmer        Bundled ffmpeg
 - **Text Editor**: Rich text input area with character count and auto-detection for Khmer and English scripts.
 - **Voice Selector**: Meta MMS-TTS Khmer engine with options for native Khmer and bilingual phonetic transliteration.
 - **Voice Styling Modes**:
+  - *Auto*: Balanced native synthesis for Khmer and bilingual mixed speech.
   - *Preset*: Professional Female, Friendly Male, Deep Male, Warm Storyteller, News Anchor.
-  - *Clone / Pitch Matching*: Pitch-shifted profiles (e.g. deep male baritone) matching reference voice tone.
-  - *Auto*: Balanced native synthesis.
 - **Speed & Timing**: Granular speed slider (0.5x to 2.0x) with quick shortcut buttons (0.75x, 1.0x, 1.25x, 1.5x, 2.0x).
 - **Waveform Player**: 40-bar amplitude waveform, interactive seek bar, play/pause, volume control, and duration timer.
 - **Export Actions**: One-click "Save as .wav" and "Save as .mp3" saving to `exports/`.

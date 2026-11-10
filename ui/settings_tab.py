@@ -72,45 +72,16 @@ class SettingsTab(QWidget):
         layout.setSpacing(18)
 
         # Title
-        title = QLabel("Engines for each pipeline step")
+        title = QLabel("Text-to-Speech Engines (Local & Offline)")
         title.setFont(QFont("Segoe UI", 12, QFont.Bold))
         layout.addWidget(title)
 
-        # Row 1: Speech to text
+        # Row 1: Speech Synthesis Engine (Meta MMS-TTS Khmer)
         layout.addLayout(self.create_engine_row(
-            label_text="Speech to text",
+            label_text="Speech Engine",
             input_label="Engine",
             combo_items=[
-                "Hongleng Khmer ASR + faster-whisper (Local, Free)",
-                "faster-whisper English (Local, Free)"
-            ],
-            badge_text="Connected",
-            badge_type="green"
-        ))
-
-        layout.addWidget(self.create_divider())
-
-        # Row 2: Translation
-        layout.addLayout(self.create_engine_row(
-            label_text="Translation",
-            input_label="Engine",
-            combo_items=[
-                "NLLB-200 distilled 600M (Local, Non-commercial)",
-                "NLLB-200 1.3B (Local, High RAM)"
-            ],
-            badge_text="Connected",
-            badge_type="green"
-        ))
-
-        layout.addWidget(self.create_divider())
-
-        # Row 3: Voice (Meta MMS-TTS)
-        layout.addLayout(self.create_engine_row(
-            label_text="Voice (Meta MMS-TTS)",
-            input_label="Model",
-            combo_items=[
-                "Meta MMS-TTS Khmer (Local, 139 MB)",
-                "Meta MMS-TTS + Phonetic Transliteration"
+                "Meta MMS-TTS Khmer (Local, 139 MB) — Khmer & English"
             ],
             badge_text="Loaded",
             badge_type="green"
@@ -118,11 +89,11 @@ class SettingsTab(QWidget):
 
         layout.addWidget(self.create_divider())
 
-        # Row 4: Video tools (ffmpeg)
+        # Row 2: Audio tools (ffmpeg)
         video_row = QHBoxLayout()
         video_row.setSpacing(12)
 
-        v_label = QLabel("Video tools")
+        v_label = QLabel("Audio tools")
         v_label.setFont(QFont("Segoe UI", 11, QFont.DemiBold))
         v_label.setFixedWidth(130)
         video_row.addWidget(v_label)
@@ -131,7 +102,7 @@ class SettingsTab(QWidget):
         v_info.setSpacing(2)
         v_name = QLabel("ffmpeg")
         v_name.setFont(QFont("Segoe UI", 11, QFont.Medium))
-        v_desc = QLabel("Bundled with the app, version 7.x")
+        v_desc = QLabel("Bundled with the app for audio processing & MP3/WAV export")
         v_desc.setStyleSheet("color: #6B7280; font-size: 11px;")
         v_info.addWidget(v_name)
         v_info.addWidget(v_desc)
@@ -305,7 +276,7 @@ class SettingsTab(QWidget):
         layout.addWidget(icon_lbl)
 
         text_lbl = QLabel(
-            "Check the model license before selling or monetizing dubbed videos. "
+            "Check the model license before selling or monetizing generated audio. "
             "Output quality for Khmer should be tested with your own sample clips first."
         )
         text_lbl.setStyleSheet(f"""

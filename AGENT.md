@@ -1,6 +1,6 @@
 # AGENT.md: Rules for AI Agents Working on KhmerTTS
 
-KhmerTTS is a free, offline desktop app for English and Khmer text-to-speech synthesis using Meta MMS-TTS Khmer with phonetic transliteration. Read `PLAN.md` first. If this file and `PLAN.md` disagree, ask the owner before acting.
+KhmerTTS is a free, offline desktop app for English and Khmer text-to-speech synthesis using single Meta MMS-TTS Khmer engine with advanced phonetic transliteration. Read `PLAN.md` first. If this file and `PLAN.md` disagree, ask the owner before acting.
 
 ## 1. Hard rules (never break these)
 
@@ -32,7 +32,7 @@ The reference computer is an MSI GV72 8RC: Intel i7-8750H, GTX 1050 with 2 GB VR
 ## 4. Tech stack (do not swap without asking)
 
 - Python 3.10+, PySide6 for the UI, PyTorch, `transformers`, `soundfile`, ffmpeg.
-- Speech Synthesis Engine: Meta MMS-TTS Khmer (`facebook/mms-tts-khm`) with phonetic transliteration for English loanwords and phrases.
+- Speech Synthesis Engine: Meta MMS-TTS Khmer (`facebook/mms-tts-khm`) with comprehensive phonetic transliteration for English words, technical terms, and bilingual mixed text.
 - Packaging: PyInstaller.
 - Pin dependency versions in `requirements.txt`. Add a new dependency only if it is free, necessary, and recorded in `LICENSES.md`.
 
