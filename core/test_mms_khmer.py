@@ -8,15 +8,19 @@ import sys
 import time
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_DIR)
 MODELS_DIR = os.path.join(PROJECT_DIR, "models")
 TEMP_DIR = os.path.join(PROJECT_DIR, "temp")
 
 os.environ["HF_HOME"] = MODELS_DIR
 os.environ["TRANSFORMERS_CACHE"] = MODELS_DIR
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 import torch
 import soundfile as sf
 from transformers import AutoTokenizer, VitsModel
+from core.tts_engine import get_mms_khmer_local_path
 
 
 def run_mms_test():
@@ -25,9 +29,10 @@ def run_mms_test():
     print(f"Cache location: {MODELS_DIR}")
     print("=" * 60)
 
+    model_path = get_mms_khmer_local_path()
     start_load = time.time()
-    tokenizer = AutoTokenizer.from_pretrained("facebook/mms-tts-khm", cache_dir=MODELS_DIR)
-    model = VitsModel.from_pretrained("facebook/mms-tts-khm", cache_dir=MODELS_DIR)
+    tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+    model = VitsModel.from_pretrained(model_path, local_files_only=True)
     load_time = time.time() - start_load
     print(f"✓ MMS-TTS Khmer loaded in {load_time:.2f} s")
 

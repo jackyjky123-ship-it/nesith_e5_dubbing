@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("KhmerDub - English and Khmer Dubbing Studio")
+        self.setWindowTitle("KhmerTTS - English and Khmer Speech Studio")
         self.resize(1180, 800)
         self.setMinimumSize(980, 660)
 
@@ -56,7 +56,17 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.tts_tab)
         self.stack.addWidget(self.settings_tab)
 
+        # Connect inter-tab signals
+        self.tts_tab.useInDubClicked.connect(self.on_tts_use_in_dub)
+
         root_layout.addWidget(self.stack)
+
+        # Default to Text to Speech tab
+        self.switch_tab(1)
+
+    def on_tts_use_in_dub(self, audio_path: str, text: str):
+        """Switches to Dub video tab when TTS audio is sent to dubbing."""
+        self.switch_tab(0)
 
     def create_header_bar(self) -> QFrame:
         header = QFrame()
@@ -86,11 +96,11 @@ class MainWindow(QMainWindow):
         title_box.setSpacing(1)
         title_box.setAlignment(Qt.AlignVCenter)
         
-        lbl_title = QLabel("KhmerDub")
+        lbl_title = QLabel("KhmerTTS")
         lbl_title.setFont(QFont("Segoe UI", 13, QFont.Bold))
         lbl_title.setStyleSheet("color: #111827;")
         
-        lbl_sub = QLabel("English and Khmer dubbing studio")
+        lbl_sub = QLabel("English and Khmer speech synthesis studio")
         lbl_sub.setFont(QFont("Segoe UI", 10))
         lbl_sub.setStyleSheet("color: #6B7280;")
         
@@ -134,18 +144,27 @@ class MainWindow(QMainWindow):
         dot.setStyleSheet("color: #10B981; font-size: 14px;")
         status_box.addWidget(dot)
 
-        status_text = QLabel("OmniVoice loaded on GPU")
+        from core.config import get_active_device
+        device_str = get_active_device().upper()
+        status_text = QLabel(f"Meta MMS-TTS ({device_str})")
         status_text.setStyleSheet("color: #374151; font-size: 12px; font-weight: 500;")
         status_box.addWidget(status_text)
 
         layout.addLayout(status_box)
 
-        # Set initial tab styling
-        self.update_nav_styles(0)
+        self.update_nav_styles(1)
 
         return header
 
     def switch_tab(self, index: int):
+        prev_index = self.stack.currentIndex()
+        if prev_index == 1 and index != 1:
+            # Free TTS model RAM when leaving the TTS Studio (AGENT.md Rule 3)
+            try:
+                from core.tts_engine import tts_manager
+                tts_manager.unload_model()
+            except Exception:
+                pass
         self.stack.setCurrentIndex(index)
         self.update_nav_styles(index)
 

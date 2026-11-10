@@ -1,5 +1,5 @@
 """
-KhmerDub - English and Khmer Video Dubbing Desktop App
+KhmerTTS - English and Khmer Offline Text-to-Speech Studio
 Entry Point.
 
 Hard rules enforced:
@@ -39,8 +39,8 @@ from ui.main_window import MainWindow
 def setup_application() -> QApplication:
     # Enable high-DPI scaling
     app = QApplication(sys.argv)
-    app.setApplicationName("KhmerDub")
-    app.setOrganizationName("KhmerDub")
+    app.setApplicationName("KhmerTTS")
+    app.setOrganizationName("KhmerTTS")
 
     # Set up global font with Khmer support fallback
     font = QFont()

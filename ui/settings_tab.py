@@ -104,13 +104,13 @@ class SettingsTab(QWidget):
 
         layout.addWidget(self.create_divider())
 
-        # Row 3: Voice (OmniVoice)
+        # Row 3: Voice (Meta MMS-TTS)
         layout.addLayout(self.create_engine_row(
-            label_text="Voice (OmniVoice)",
+            label_text="Voice (Meta MMS-TTS)",
             input_label="Model",
             combo_items=[
-                "OmniVoice, 613M parameters (Local)",
-                "OmniVoice (INT8 Quantized, Low VRAM)"
+                "Meta MMS-TTS Khmer (Local, 139 MB)",
+                "Meta MMS-TTS + Phonetic Transliteration"
             ],
             badge_text="Loaded",
             badge_type="green"

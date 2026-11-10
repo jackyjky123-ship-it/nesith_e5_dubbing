@@ -47,6 +47,12 @@ temp/*
 exports/*
 !exports/.gitkeep
 
+# Local configuration
+config.json
+
+# Tool outputs
+graphify-out/
+
 # OS / Editor files
 .DS_Store
 Thumbs.db
