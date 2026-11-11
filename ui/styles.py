@@ -225,6 +225,15 @@ QHeaderView::section {{
     text-align: left;
 }}
 
+/* Scroll Area */
+QScrollArea {{
+    background: transparent;
+    border: none;
+}}
+QScrollArea > QWidget > QWidget {{
+    background: transparent;
+}}
+
 /* Scrollbars */
 QScrollBar:vertical {{
     background: transparent;

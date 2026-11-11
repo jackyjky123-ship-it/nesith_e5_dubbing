@@ -1,0 +1,19 @@
+{
+  "Artificial Intelligence": "អាធីហ្វីសល អ៊ិនធែលលីជិន",
+  "Computer": "កុំព្យូទ័រ",
+  "Framework": "ហ្វ្រេមវើក",
+  "JavaScript": "ចាវ៉ាស្គ្រីប",
+  "React": "រីអាក់",
+  "Tailwind": "ថេលវីន",
+  "PostgreSQL": "ប៉ុសហ្គ្រេស ឃ្យូអែល",
+  "FastAPI": "ហ្វាស អេភីអាយ",
+  "OpenAI": "អូផិនអេអាយ",
+  "ChatGPT": "ឆាតជីភីធី",
+  "TypeScript": "ថាយស្គ្រីប",
+  "Next.js": "ណិច ជេអេស",
+  "Node.js": "ណូដ ជេអេស",
+  "Vue": "វ្យូ",
+  "Angular": "អេងហ្គូឡា",
+  "PyTorch": "ផាយថច",
+  "TensorFlow": "ធេនស័រផ្លូ"
+}

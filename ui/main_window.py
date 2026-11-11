@@ -55,6 +55,10 @@ class MainWindow(QMainWindow):
 
         root_layout.addWidget(self.stack)
 
+        # Connect engine change to top header indicator
+        self.tts_tab.engineChanged.connect(self.update_header_engine_status)
+        self.update_header_engine_status(self.tts_tab.current_engine)
+
         # Default to Text to Speech tab
         self.switch_tab(0)
 
@@ -128,22 +132,34 @@ class MainWindow(QMainWindow):
         status_box = QHBoxLayout()
         status_box.setSpacing(8)
         
-        # Green Dot Indicator
-        dot = QLabel("●")
-        dot.setStyleSheet("color: #10B981; font-size: 14px;")
-        status_box.addWidget(dot)
+        # Indicator Dot & Status Text
+        self.header_status_dot = QLabel("●")
+        self.header_status_dot.setStyleSheet("color: #10B981; font-size: 14px;")
+        status_box.addWidget(self.header_status_dot)
 
-        from core.config import get_active_device
-        device_str = get_active_device().upper()
-        status_text = QLabel(f"Meta MMS-TTS ({device_str})")
-        status_text.setStyleSheet("color: #374151; font-size: 12px; font-weight: 500;")
-        status_box.addWidget(status_text)
+        self.header_status_text = QLabel("Meta MMS-TTS")
+        self.header_status_text.setStyleSheet("color: #374151; font-size: 12px; font-weight: 500;")
+        status_box.addWidget(self.header_status_text)
 
         layout.addLayout(status_box)
 
         self.update_nav_styles(0)
 
         return header
+
+    def update_header_engine_status(self, engine_name: str):
+        """Updates top right engine status pill."""
+        if not hasattr(self, "header_status_dot") or not hasattr(self, "header_status_text"):
+            return
+
+        if engine_name == "gemini":
+            self.header_status_dot.setStyleSheet("color: #2563EB; font-size: 14px;")
+            self.header_status_text.setText("Gemini AI TTS (Cloud)")
+        else:
+            from core.config import get_active_device
+            device_str = get_active_device().upper()
+            self.header_status_dot.setStyleSheet("color: #10B981; font-size: 14px;")
+            self.header_status_text.setText(f"Meta MMS-TTS ({device_str})")
 
     def switch_tab(self, index: int):
         prev_index = self.stack.currentIndex()

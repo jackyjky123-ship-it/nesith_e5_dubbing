@@ -43,10 +43,14 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "device": "cpu",                     # "cpu" or "cuda"
     "precision": "fp32",                 # "fp32" or "fp16"
     "low_memory_mode": True,             # Unload model after generation to conserve 8GB RAM
-    "tts_engine": "mms_khmer",           # "mms_khmer", "auto"
+    "tts_engine": "mms_khmer",           # "mms_khmer" (Local), "gemini" (Gemini AI)
     "tts_default_quality_steps": 8,      # 4 to 32 steps (8 is balanced for CPU)
     "tts_default_speed": 1.0,            # 0.5 to 2.0
     "export_folder": EXPORTS_DIR,
+    # Gemini AI BYOK Settings (Non-secret preferences; API key is stored in OS secure storage only)
+    "gemini_model": "gemini-3.8-flash-tts",
+    "gemini_voice": "Kore",
+    "gemini_style": "Natural, clear, and expressive",
 }
 
 

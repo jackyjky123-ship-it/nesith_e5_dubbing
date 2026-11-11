@@ -13,6 +13,7 @@ by valid base consonants (preventing orphaned dependent vowels or dropped tokens
 
 import re
 from typing import Dict, List, Tuple, Optional
+from core.pronunciation_dict import load_user_dictionary
 
 # Acronym letter names in Khmer
 LETTER_NAMES: Dict[str, str] = {
@@ -1134,6 +1135,152 @@ TECH_LOANWORDS: Dict[str, str] = {
     "access": "អាក់សេស",
     "hash": "ហាស",
     "jwt": "ជេដាប់ប៊លយូធី",
+
+    # Artificial Intelligence & Machine Learning
+    "artificial intelligence": "អាធីហ្វីសល អ៊ិនធែលលីជិន",
+    "artificial": "អាធីហ្វីសល",
+    "intelligence": "អ៊ិនធែលលីជិន",
+    "machine learning": "ម៉ាស៊ីន លើននីង",
+    "deep learning": "ឌីប លើននីង",
+    "neural network": "ញូរ៉ល ណេតវើក",
+    "neural networks": "ញូរ៉ល ណេតវើកស៍",
+    "neural": "ញូរ៉ល",
+    "deep": "ឌីប",
+    "learning": "លើននីង",
+    "learn": "លើន",
+    "chatgpt": "ឆាតជីភីធី",
+    "gpt-4": "ជីភីធី បួន",
+    "gpt-3": "ជីភីធី បី",
+    "gpt": "ជីភីធី",
+    "openai": "អូផិនអេអាយ",
+    "claude": "ក្លូដ",
+    "gemini": "ជេមីណៃ",
+    "anthropic": "អ៊ែនស្រូភិក",
+    "transformer": "ត្រេនស៍ហ្វរម័រ",
+    "transformers": "ត្រេនស៍ហ្វរម័រ",
+    "token": "ថូខឹន",
+    "tokens": "ថូខឹនស៍",
+    "tokenizer": "ថូខឹនណាយស័រ",
+    "tokenization": "ថូខឹនណាយសេសិន",
+    "prompt": "ប្រម",
+    "prompts": "ប្រមស៍",
+    "dataset": "ដេតាសេត",
+    "datasets": "ដេតាសេត",
+    "training": "ត្រេននីង",
+    "inference": "អ៊ិនហ្វឺរិនស៍",
+    "fine-tuning": "ហ្វាញ ធូនីង",
+    "fine-tune": "ហ្វាញ ធូន",
+    "parameters": "ប៉ារ៉ាម៉ែត្រ",
+    "parameter": "ប៉ារ៉ាម៉ែត្រ",
+    "weights": "វ៉េត",
+    "algorithm": "អាល់ហ្គោរីតឹម",
+    "algorithms": "អាល់ហ្គោរីតឹម",
+    "speech synthesis": "ស្ពីច ស៊ីនថេស៊ីស",
+    "synthesizer": "ស៊ីនថេសាយស័រ",
+    "synthesize": "ស៊ីនថេសាយ",
+    "phoneme": "ហ្វូនីម",
+    "phonemes": "ហ្វូនីមស៍",
+    "phonetic": "ហ្វូណេថិក",
+    "phonetics": "ហ្វូណេថិកស៍",
+    "transliteration": "ត្រេនស៍លីធឺរ៉េសិន",
+    "text-to-speech": "ថិច ធូ ស្ពីច",
+    
+    # Frameworks, Libraries & Languages
+    "framework": "ហ្វ្រេមវើក",
+    "frameworks": "ហ្វ្រេមវើកស៍",
+    "library": "ឡាយប្រារី",
+    "libraries": "ឡាយប្រារី",
+    "javascript": "ចាវ៉ាស្គ្រីប",
+    "typescript": "ថាយស្គ្រីប",
+    "react": "រីអាក់",
+    "reactjs": "រីអាក់ ជេអេស",
+    "react native": "រីអាក់ ណេធីវ",
+    "vue": "វ្យូ",
+    "vuejs": "វ្យូ ជេអេស",
+    "angular": "អេងហ្គូឡា",
+    "svelte": "ស្វែល",
+    "nextjs": "ណិច ជេអេស",
+    "nuxtjs": "ណាក ជេអេស",
+    "tailwind": "ថេលវីន",
+    "tailwindcss": "ថេលវីន ស៊ីអេសអេស",
+    "fastapi": "ហ្វាស អេភីអាយ",
+    "flask": "ហ្វ្លាស",
+    "django": "ចាងហ្គោ",
+    "express": "អិចស្ប្រេស",
+    "spring boot": "ស្ព្រីង ប៊ូត",
+    "laravel": "ឡារ៉ាវែល",
+    "flutter": "ផ្លាត់ធ័រ",
+    "dart": "ដាត",
+    "kotlin": "ខតលីន",
+    "swift": "ស្វីហ្វ",
+    "golang": "ហ្គោឡេង",
+    "rust": "រ៉ាស្ត",
+    "c++": "ស៊ី ផ្លាស ផ្លាស",
+    "c#": "ស៊ី ស្ហាប",
+    "dotnet": "ដត ណេត",
+    ".net": "ដត ណេត",
+    "node": "ណូដ",
+    "nodejs": "ណូដ ជេអេស",
+    "bun": "បាន",
+    "deno": "ឌីណូ",
+    "pytorch": "ផាយថច",
+    "tensorflow": "ធេនស័រផ្លូ",
+    "keras": "កេរ៉ាស",
+    "pandas": "ផេនដាស",
+    "numpy": "ណាំផាយ",
+    "scipy": "សាយផាយ",
+    
+    # Architecture, Devices & Systems
+    "computer": "កុំព្យូទ័រ",
+    "computers": "កុំព្យូទ័រ",
+    "computing": "ខុំព្យូធីង",
+    "science": "សាយអឹនស៍",
+    "scientific": "សាយអឹនធីហ្វិក",
+    "modern": "ម៉ូឌើន",
+    "revolutionizing": "រ៉េវ៉ូលូសិនណាយស៊ីង",
+    "revolutionize": "រ៉េវ៉ូលូសិនណាយស៍",
+    "revolution": "រ៉េវ៉ូលូសិន",
+    "full stack": "ហ្វូល ស្តេក",
+    "fullstack": "ហ្វូលស្តេក",
+    "front end": "ហ្វ្រុន អិន",
+    "frontend": "ហ្វ្រុនអិន",
+    "back end": "បេក អិន",
+    "backend": "បេកអិន",
+    "database": "ដេតាបេស",
+    "databases": "ដេតាបេស",
+    "postgresql": "ប៉ុសហ្គ្រេស ឃ្យូអែល",
+    "postgres": "ប៉ុសហ្គ្រេស",
+    "mongodb": "ម៉ុងហ្គោឌីប៊ី",
+    "mysql": "ម៉ាយអេសឃ្យូអែល",
+    "sqlite": "អេសឃ្យូអែលឡាយ",
+    "redis": "រ៉េឌីស",
+    "docker": "ដុកឃ័រ",
+    "kubernetes": "ឃូបឺណេធីស",
+    "k8s": "ខេ អេត អេស",
+    "cloud": "ក្លោដ",
+    "server": "សឺវ័រ",
+    "servers": "សឺវ័រ",
+    "studio": "ស្ទូឌីយូ",
+    "senior": "ស៊ីនញ័រ",
+    "junior": "ជូនញ័រ",
+    "pro": "ប្រូ",
+    "max": "ម៉េក",
+    "ultra": "អុលត្រា",
+    "plus": "ផ្លាស",
+    "mini": "មីនី",
+    "iphone": "អាយហ្វូន",
+    "ipad": "អាយផេត",
+    "macbook": "ម៉េកប៊ុក",
+    "5g": "ប្រាំ ជី",
+    "4g": "បួន ជី",
+    "3g": "បី ជី",
+    "4k": "បួន ខេ",
+    "8k": "ប្រាំបី ខេ",
+    "covid-19": "កូវីដ ដប់ប្រាំបួន",
+    "covid": "កូវីដ",
+    "wifi": "វ៉ាយហ្វាយ",
+    "wi-fi": "វ៉ាយហ្វាយ",
+    "bluetooth": "ប៊្លូធូស",
 }
 
 # Pre-compile regex for dictionary loanwords (longest phrases and words matched first)
@@ -1282,45 +1429,97 @@ def _ensure_initial_consonant(text: str) -> str:
     return text
 
 
+def normalize_currency_and_units(text: str) -> str:
+    """Normalizes currency symbols, percentages, and memory/data storage units."""
+    # $250 -> 250 ដុល្លារ
+    text = re.sub(r"\$(\d+(?:\.\d+)?)", r"\g<1> ដុល្លារ", text)
+    # % -> ភាគរយ
+    text = re.sub(r"(\d+)\s*%", r"\g<1> ភាគរយ", text)
+    # 16GB, 512MB, 1TB, 256KB
+    text = re.sub(
+        r"(?i)\b(\d+)\s*(gb|mb|tb|kb)\b",
+        lambda m: m.group(1) + " " + {
+            "gb": "ជីហ្គាបៃត៍", "mb": "មេហ្គាបៃត៍", "tb": "តេរ៉ាបៃត៍", "kb": "គីឡូបៃត៍"
+        }[m.group(2).lower()],
+        text
+    )
+    return text
+
+
+def normalize_programming_symbols(text: str) -> str:
+    """Normalizes programming languages and technical symbols before tokenization."""
+    specials = [
+        (r"(?i)(?<!\w)c\+\+(?!\w)", "ស៊ី ផ្លាស ផ្លាស"),
+        (r"(?i)(?<!\w)c#(?!\w)", "ស៊ី ស្ហាប"),
+        (r"(?i)(?<!\w)\.net(?!\w)", "ដត ណេត"),
+        (r"(?i)(?<!\w)node\.js(?!\w)", "ណូដ ជេអេស"),
+        (r"(?i)(?<!\w)next\.js(?!\w)", "ណិច ជេអេស"),
+        (r"(?i)(?<!\w)vue\.js(?!\w)", "វ្យូ ជេអេស"),
+        (r"(?i)(?<!\w)wi-fi(?!\w)", "វ៉ាយហ្វាយ"),
+    ]
+    for pat, rep in specials:
+        text = re.sub(pat, rep, text)
+    return text
+
+
+def split_alphanumeric_compounds(text: str) -> str:
+    """Splits hybrid alphanumeric tokens (e.g. 5G -> 5 G, GPT-4 -> GPT 4, HTML5 -> HTML 5)."""
+    # 5G -> 5 G, 4K -> 4 K
+    text = re.sub(r"(?i)\b(\d+)\s*([a-z])\b", r"\g<1> \g<2>", text)
+    # GPT-4 -> GPT 4, COVID-19 -> COVID 19
+    text = re.sub(r"\b([A-Za-z]+)-(\d+)\b", r"\g<1> \g<2>", text)
+    # HTML5, MP3, Web3 (where letters >= 2 and followed by digits)
+    text = re.sub(r"\b([A-Za-z]{2,})(\d+)\b", r"\g<1> \g<2>", text)
+    return text
+
+
 def transliterate_unknown_english_word(word: str) -> str:
     """
-    Intelligent G2P phonetic transliteration of an unknown English word to Khmer script.
+    Intelligent pronunciation-aware G2P phonetic transliteration of an English word to Khmer script.
     Handles:
-    - Acronyms (e.g. 'API' -> 'អេភីអាយ')
+    - Acronyms (e.g. 'API' -> 'អេភីអាយ', 'GPT' -> 'ជីភីធី', 'HTML' -> 'អេចធីអិមអែល')
+    - CamelCase splitting (e.g. 'FastAPI' -> 'Fast' + 'API' -> 'ហ្វាស អេភីអាយ')
     - Magic Silent 'E' (e.g. 'like' -> 'ឡាយខ៍', 'make' -> 'មេក', 'time' -> 'ថាម')
-    - Suffixes (-tion, -ment, -ing, -ed, -er, -ly)
+    - Contextual soft 'c' (/s/) vs hard 'c' (/k/), and soft 'g' (/dʒ/) vs hard 'g' (/g/)
+    - Phonetic suffixes (-cial/-tial -> 'សល', -tion/-sion -> 'សិន', -ture -> 'ឆ័រ', -ce/-se -> 'ស៍')
     - Consonant digraphs & blends
-    - Base consonant anchoring for initial vowels
+    - Base consonant anchoring for initial vowels (guarantees valid Khmer Unicode)
     """
     cleaned = word.strip()
     if not cleaned:
         return ""
 
-    # Acronyms (2 to 4 uppercase letters, e.g. SDK, LAN, RAM)
-    if cleaned.isupper() and 2 <= len(cleaned) <= 4:
+    # Acronyms (2 to 5 uppercase letters, e.g. SDK, LAN, RAM, HTML, CSS, JSON, TTS, NLP)
+    if cleaned.isupper() and 2 <= len(cleaned) <= 5:
         spelled = [LETTER_NAMES.get(c.lower(), c) for c in cleaned]
         return "".join(spelled)
 
+    # Check user dictionary and technical lexicon
+    user_dict = load_user_dictionary()
     lower = cleaned.lower()
-
-    # Dictionary lookup (case-insensitive)
+    if user_dict and lower in user_dict:
+        return user_dict[lower]
     if lower in TECH_LOANWORDS:
         return TECH_LOANWORDS[lower]
 
-    # Handle Magic Silent 'E' (Vowel + Consonant + 'e' at end of word, e.g., 'like', 'make', 'time')
-    # a_e -> េ, i_e -> ាយ, o_e -> ោ, u_e -> យូ
+    # Handle CamelCase words (e.g. FastAPI, TensorFlow, ChatGPT, JavaScript)
+    camel_parts = re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?=[A-Z][a-z]|\b)", cleaned)
+    if len(camel_parts) > 1:
+        part_trans = [transliterate_unknown_english_word(p) for p in camel_parts]
+        return " ".join(p for p in part_trans if p)
+
+    # Handle Magic Silent 'E' (Vowel + Consonant + 'e' at end of word, e.g. like, make, time, code)
     m_cvce = re.match(r"^([bcdfghjklmnpqrstvwxyz]{0,3})([aeiou])([bcdfghjklmnpqrstvwxyz])e$", lower)
     if m_cvce:
         onset, v, coda = m_cvce.groups()
         onset_khmer = ""
         if onset:
-            # Match onset consonant rules
             for rule_c, k_c in _CONSONANT_RULES:
                 if onset == rule_c:
                     onset_khmer = k_c
                     break
             if not onset_khmer:
-                onset_khmer = "".join(_CONSONANT_RULES[0][1] for _ in onset)  # fallback
+                onset_khmer = "".join(_CONSONANT_RULES[0][1] for _ in onset)
         coda_khmer = ""
         for rule_c, k_c in _CONSONANT_RULES:
             if coda == rule_c:
@@ -1328,41 +1527,61 @@ def transliterate_unknown_english_word(word: str) -> str:
                 break
 
         if v == "a":
-            res = (onset_khmer or "អ") + "េ" + coda_khmer
-            return res
+            return _ensure_initial_consonant((onset_khmer or "អ") + "េ" + coda_khmer)
         elif v == "i":
-            res = (onset_khmer or "អ") + "ាយ" + coda_khmer
-            return res
+            return _ensure_initial_consonant((onset_khmer or "អ") + "ាយ" + coda_khmer)
         elif v == "o":
-            res = (onset_khmer or "អ") + "ោ" + coda_khmer
-            return res
+            return _ensure_initial_consonant((onset_khmer or "អ") + "ោ" + coda_khmer)
         elif v == "u":
-            res = (onset_khmer or "អ") + "យូ" + coda_khmer
-            return res
+            return _ensure_initial_consonant((onset_khmer or "អ") + "យូ" + coda_khmer)
 
-    # Suffix extraction
+    # Pronunciation-aware suffix extraction
     suffix_khmer = ""
     for suffix, k_rep in [
-        ("tion", "សិន"), ("sion", "សិន"), ("ment", "មិន"), ("ness", "ណេស"),
-        ("able", "អេបល"), ("ible", "អេបល"), ("ing", "អ៊ីង"), ("ed", "ដ៍"),
-        ("ful", "ហ្វូល"), ("less", "ឡេស"), ("ly", "លី"), ("er", "អ័រ")
+        ("cial", "សល"), ("tial", "សល"),
+        ("tion", "សិន"), ("sion", "សិន"),
+        ("ture", "ឆ័រ"),
+        ("ment", "មិន"), ("ness", "ណេស"),
+        ("able", "អេបល"), ("ible", "អេបល"),
+        ("ity", "អ៊ឺធី"), ("logy", "ឡូជី"),
+        ("ize", "អាយស៍"), ("ise", "អាយស៍"), ("yze", "អាយស៍"),
+        ("ing", "អ៊ីង"), ("ed", "ដ៍"),
+        ("ful", "ហ្វូល"), ("less", "ឡេស"), ("ly", "លី"),
+        ("er", "អ័រ"), ("or", "អ័រ"),
+        ("ce", "ស៍"), ("se", "ស៍"),
+        ("ge", "ច"), ("dge", "ច")
     ]:
         if lower.endswith(suffix) and len(lower) > len(suffix) + 1:
             stem = lower[:-len(suffix)]
+            if user_dict and stem in user_dict:
+                return user_dict[stem] + k_rep
             if stem in TECH_LOANWORDS:
                 return TECH_LOANWORDS[stem] + k_rep
             suffix_khmer = k_rep
             lower = stem
             break
 
-    # Grapheme-to-Phoneme sequential mapping
+    # Contextual sequential mapping
     res = ""
     i = 0
     n = len(lower)
 
     while i < n:
         matched = False
-        # Try multi-char then single-char patterns
+        c = lower[i]
+        next_c = lower[i + 1] if i + 1 < n else ""
+
+        # Contextual soft 'c' and soft 'g' rules
+        if c == "c" and next_c in "eiy":
+            res += "ស"
+            i += 1
+            continue
+        elif c == "g" and next_c in "eiy":
+            res += "ជ"
+            i += 1
+            continue
+
+        # Try multi-char rules
         for l_chars, k_char in _CONSONANT_RULES + _VOWEL_RULES:
             if lower.startswith(l_chars, i):
                 res += k_char
@@ -1427,11 +1646,13 @@ def prepare_text_for_mms_khmer(text: str) -> str:
     """
     Prepares text for Meta MMS-TTS Khmer synthesis by:
     1. Normalizing Khmer keyboard typos and Unicode anomalies.
-    2. Expanding numbers into spoken Khmer words.
-    3. Transliterating English loanwords, conversational phrases, and acronyms
-       into natural, phonetically accurate Khmer script.
-    4. Ensuring seamless word boundaries and vowel anchoring so that
-       English and Khmer speech mix together smoothly and naturally.
+    2. Normalizing currency, percentages, storage units, and programming symbols.
+    3. Applying user-defined custom pronunciation dictionary (highest priority).
+    4. Transliterating English loanwords, technical terminology, and conversational phrases.
+    5. Expanding alphanumeric tokens (GPT-4, COVID-19, 5G, 4K, 16GB).
+    6. Expanding numbers into authentic spoken Khmer words.
+    7. Ensuring natural Khmer sentence rhythm and vowel anchoring so that
+       English and Khmer speech blend together smoothly in one cohesive voice.
     """
     if not text:
         return ""
@@ -1439,30 +1660,57 @@ def prepare_text_for_mms_khmer(text: str) -> str:
     # Step 0: Normalize Khmer keyboard typos
     text = normalize_khmer_typos(text)
 
-    # Step 1: Normalize numbers to spoken Khmer
-    text = normalize_numbers(text)
+    # Step 1: Normalize currency and measurement units ($250, 16GB, 50%)
+    text = normalize_currency_and_units(text)
 
-    # Step 2: Replace known dictionary loanwords and phrases (case-insensitive)
+    # Step 2: Normalize programming languages & technical symbols (C++, C#, .NET, Node.js, Next.js)
+    text = normalize_programming_symbols(text)
+
+    # Step 3: Apply User Custom Pronunciation Dictionary (Tier 1: User Priority)
+    user_dict = load_user_dictionary()
+    if user_dict:
+        sorted_user = sorted(user_dict.keys(), key=lambda k: (len(k.split()), len(k)), reverse=True)
+        user_pattern = re.compile(r"\b(" + "|".join(re.escape(k) for k in sorted_user) + r")\b", re.IGNORECASE)
+        text = user_pattern.sub(lambda m: user_dict.get(m.group(0).lower(), m.group(0)), text)
+
+    # Step 4: Apply Built-in Technical & Conversational Phonetic Lexicon (Tier 2)
     def _loanword_sub(match: re.Match) -> str:
         key = match.group(0).lower()
         return TECH_LOANWORDS.get(key, match.group(0))
 
     text_transformed = _LOANWORDS_PATTERN.sub(_loanword_sub, text)
 
-    # Step 3: Catch any remaining isolated English words or contractions
+    # Step 5: Split remaining alphanumeric compound tokens (GPT-4 -> GPT 4, 5G -> 5 G, etc.)
+    text_transformed = split_alphanumeric_compounds(text_transformed)
+
+    # Step 6: Catch any remaining isolated English words, acronyms, or contractions (Tier 3)
     def _fallback_sub(match: re.Match) -> str:
         w = match.group(0)
         # If already Khmer, leave untouched
         if re.search(r"[\u1780-\u17FF]", w):
             return w
+
+        # Re-check user dict and built-in lexicon for newly split tokens
+        low = w.lower()
+        if user_dict and low in user_dict:
+            return user_dict[low]
+        if low in TECH_LOANWORDS:
+            return TECH_LOANWORDS[low]
+
+        # Acronyms (e.g. AI, GPT, HTML, CSS, MP, PRO)
+        if w.isupper() and 2 <= len(w) <= 5:
+            return "".join(LETTER_NAMES.get(c.lower(), c) for c in w)
+
+        # Pronunciation-aware G2P
         transliterated = transliterate_unknown_english_word(w)
         return transliterated if transliterated else w
 
-    # Matches any remaining sequence of Latin letters or contractions (e.g. word's, user-friendly)
     text_transformed = re.sub(r"\b[A-Za-z]+(?:'[A-Za-z]+)?\b", _fallback_sub, text_transformed)
 
-    # Step 4: Ensure clean spacing around Khmer text transitions
-    # Insert clean space between Khmer character and transliterated word if missing
+    # Step 7: Normalize all numbers to spoken Khmer words
+    text_transformed = normalize_numbers(text_transformed)
+
+    # Step 8: Ensure clean spacing around Khmer text transitions
     text_transformed = re.sub(r"([\u1780-\u17FF])([A-Za-z])", r"\1 \2", text_transformed)
     text_transformed = re.sub(r"([A-Za-z])([\u1780-\u17FF])", r"\1 \2", text_transformed)
     # Collapse duplicate spaces

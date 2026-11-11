@@ -33,17 +33,25 @@ from core.config import (
 )
 from core.tts_engine import tts_manager, TTSResult, compute_waveform_bars
 from core.controller import TTSWorkerThread, load_recent_tts, add_recent_tts
+from core.secure_storage import secure_storage
+from core.gemini_service import (
+    GEMINI_TTS_MODELS, GEMINI_PREBUILT_VOICES, DEFAULT_SPEECH_INSTRUCTION
+)
 
 
 class TextToSpeechTab(QWidget):
     """Standalone Text-to-Speech Studio."""
+    engineChanged = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.current_result: Optional[TTSResult] = None
         self.worker: Optional[TTSWorkerThread] = None
+        cfg = load_config()
+        self.current_engine = cfg.get("tts_engine", "mms_khmer")
 
         self.init_ui()
+        self.set_engine(self.current_engine)
         self.on_mode_changed(0)
         self.refresh_recent_list()
 
@@ -182,8 +190,8 @@ class TextToSpeechTab(QWidget):
         header_row.addWidget(title)
         header_row.addStretch()
 
-        engine_badge = QLabel("Meta MMS-TTS Khmer")
-        engine_badge.setStyleSheet("""
+        self.engine_badge = QLabel("Meta MMS-TTS Khmer")
+        self.engine_badge.setStyleSheet("""
             QLabel {
                 color: #0F6B58;
                 background-color: #ECFDF5;
@@ -194,8 +202,22 @@ class TextToSpeechTab(QWidget):
                 font-weight: 500;
             }
         """)
-        header_row.addWidget(engine_badge)
+        header_row.addWidget(self.engine_badge)
         layout.addLayout(header_row)
+
+        # Engine Selector: [Local Khmer TTS | Gemini AI TTS]
+        init_idx = 0 if self.current_engine == "mms_khmer" else 1
+        self.engine_toggle = SegmentedTab(["Local Khmer TTS", "Gemini AI TTS"], initial_index=init_idx)
+        self.engine_toggle.tabChanged.connect(self.on_engine_tab_changed)
+        layout.addWidget(self.engine_toggle)
+
+        # ---------------------------------------------------------------------
+        # Container A: Local Engine Controls (Meta MMS-TTS Khmer)
+        # ---------------------------------------------------------------------
+        self.local_voice_box = QWidget()
+        local_layout = QVBoxLayout(self.local_voice_box)
+        local_layout.setContentsMargins(0, 0, 0, 0)
+        local_layout.setSpacing(8)
 
         # Mode Selector: [Auto | Preset]
         self.mode_toggle = SegmentedTab(["Auto", "Preset"], initial_index=0)
@@ -206,7 +228,7 @@ class TextToSpeechTab(QWidget):
             }
         """)
         self.mode_toggle.tabChanged.connect(self.on_mode_changed)
-        layout.addWidget(self.mode_toggle)
+        local_layout.addWidget(self.mode_toggle)
 
         # Preset Voice Dropdown (Preset mode, initially hidden)
         self.preset_box = QWidget()
@@ -226,9 +248,119 @@ class TextToSpeechTab(QWidget):
         ])
         preset_layout.addWidget(self.preset_combo)
         self.preset_box.setVisible(False)
-        layout.addWidget(self.preset_box)
+        local_layout.addWidget(self.preset_box)
 
-        # Speed Slider & Fine Granular Presets
+        # Quality Slider (8 steps is default balanced for CPU)
+        self.quality_label = QLabel("Quality: 8 steps (Balanced CPU ~40s)")
+        self.quality_label.setStyleSheet("color: #374151; font-size: 11px; font-weight: 500;")
+        local_layout.addWidget(self.quality_label)
+
+        self.quality_slider = QSlider(Qt.Horizontal)
+        self.quality_slider.setRange(4, 24)
+        self.quality_slider.setValue(8)
+        self.quality_slider.valueChanged.connect(self.on_quality_changed)
+        local_layout.addWidget(self.quality_slider)
+
+        layout.addWidget(self.local_voice_box)
+
+        # ---------------------------------------------------------------------
+        # Container B: Gemini AI Voice Controls (Cloud BYOK)
+        # ---------------------------------------------------------------------
+        self.gemini_voice_box = QWidget()
+        gemini_layout = QVBoxLayout(self.gemini_voice_box)
+        gemini_layout.setContentsMargins(0, 0, 0, 0)
+        gemini_layout.setSpacing(8)
+
+        # Row 1: Model & Voice Pickers side-by-side
+        pickers_row = QHBoxLayout()
+        pickers_row.setSpacing(8)
+
+        # Model picker
+        m_col = QVBoxLayout()
+        m_col.setSpacing(2)
+        lbl_m = QLabel("Model")
+        lbl_m.setStyleSheet("color: #6B7280; font-size: 10px; font-weight: 500;")
+        m_col.addWidget(lbl_m)
+        self.gemini_model_combo = QComboBox()
+        for m_id, m_name in GEMINI_TTS_MODELS.items():
+            self.gemini_model_combo.addItem(m_id, m_id)
+        m_col.addWidget(self.gemini_model_combo)
+        pickers_row.addLayout(m_col, stretch=1)
+
+        # Prebuilt Voice picker
+        v_col = QVBoxLayout()
+        v_col.setSpacing(2)
+        lbl_v = QLabel("Voice (30 Prebuilt)")
+        lbl_v.setStyleSheet("color: #6B7280; font-size: 10px; font-weight: 500;")
+        v_col.addWidget(lbl_v)
+        self.gemini_voice_combo = QComboBox()
+        for v_item in GEMINI_PREBUILT_VOICES:
+            display_name = f"{v_item['name']} ({v_item['gender']}) - {v_item['desc'].split(',')[0]}"
+            self.gemini_voice_combo.addItem(display_name, v_item["id"])
+        v_col.addWidget(self.gemini_voice_combo)
+        pickers_row.addLayout(v_col, stretch=1)
+
+        gemini_layout.addLayout(pickers_row)
+
+        # Row 2: Speaking Style
+        style_row = QHBoxLayout()
+        style_row.setSpacing(8)
+        lbl_style = QLabel("Style")
+        lbl_style.setStyleSheet("color: #6B7280; font-size: 10px; font-weight: 500;")
+        self.gemini_style_combo = QComboBox()
+        self.gemini_style_combo.addItems([
+            "Natural and expressive conversational",
+            "Professional documentary narration",
+            "Passionate and energetic podcast",
+            "Calm, soft, and soothing storytelling",
+            "Clear and articulate broadcast news"
+        ])
+        style_col = QVBoxLayout()
+        style_col.setSpacing(2)
+        style_col.addWidget(lbl_style)
+        style_col.addWidget(self.gemini_style_combo)
+        gemini_layout.addLayout(style_col)
+
+        # Row 3: Code-Switching Speech Instruction
+        inst_header = QHBoxLayout()
+        lbl_inst = QLabel("Khmer + English Speech Instruction")
+        lbl_inst.setStyleSheet("color: #374151; font-size: 11px; font-weight: 600;")
+        inst_header.addWidget(lbl_inst)
+        inst_header.addStretch()
+
+        btn_reset_inst = QPushButton("Reset to Default")
+        btn_reset_inst.setFixedHeight(20)
+        btn_reset_inst.setStyleSheet("font-size: 10px; color: #0F6B58; border: none; background: transparent;")
+        btn_reset_inst.setCursor(Qt.PointingHandCursor)
+        btn_reset_inst.clicked.connect(self.reset_gemini_instruction)
+        inst_header.addWidget(btn_reset_inst)
+        gemini_layout.addLayout(inst_header)
+
+        self.gemini_instruction_edit = QTextEdit()
+        self.gemini_instruction_edit.setFixedHeight(64)
+        self.gemini_instruction_edit.setPlainText(DEFAULT_SPEECH_INSTRUCTION)
+        self.gemini_instruction_edit.setStyleSheet("""
+            QTextEdit {
+                font-size: 11px;
+                line-height: 1.4;
+                padding: 6px;
+                border: 1px solid #D1D5DB;
+                border-radius: 6px;
+                background-color: #F9FAFB;
+            }
+            QTextEdit:focus {
+                border: 1.5px solid #0F6B58;
+                background-color: #FFFFFF;
+            }
+        """)
+        gemini_layout.addWidget(self.gemini_instruction_edit)
+
+        self.gemini_voice_box.setVisible(False)
+        layout.addWidget(self.gemini_voice_box)
+
+        # ---------------------------------------------------------------------
+        # Shared Controls: Speed Slider & Quick Presets
+        # ---------------------------------------------------------------------
         self.speed_label = QLabel("Speed: 1.0x")
         self.speed_label.setStyleSheet("color: #374151; font-size: 11px; font-weight: 500;")
         layout.addWidget(self.speed_label)
@@ -273,17 +405,6 @@ class TextToSpeechTab(QWidget):
             presets_row.addWidget(btn)
         layout.addLayout(presets_row)
 
-        # Quality Slider (8 steps is default balanced for CPU)
-        self.quality_label = QLabel("Quality: 8 steps (Balanced CPU ~40s)")
-        self.quality_label.setStyleSheet("color: #374151; font-size: 11px; font-weight: 500;")
-        layout.addWidget(self.quality_label)
-
-        self.quality_slider = QSlider(Qt.Horizontal)
-        self.quality_slider.setRange(4, 24)
-        self.quality_slider.setValue(8)
-        self.quality_slider.valueChanged.connect(self.on_quality_changed)
-        layout.addWidget(self.quality_slider)
-
         layout.addStretch()
 
         # Status & Generate Speech Button
@@ -300,6 +421,58 @@ class TextToSpeechTab(QWidget):
         layout.addWidget(self.generate_btn)
 
         return card
+
+    def set_engine(self, engine_name: str):
+        """Switches between Local Khmer TTS ('mms_khmer') and Gemini AI TTS ('gemini')."""
+        is_gemini = (engine_name in ("gemini", 1))
+        self.current_engine = "gemini" if is_gemini else "mms_khmer"
+
+        # Update toggle buttons without triggering recursion
+        self.engine_toggle.active_index = 1 if is_gemini else 0
+        self.engine_toggle.update_styles()
+
+        self.gemini_voice_box.setVisible(is_gemini)
+        self.local_voice_box.setVisible(not is_gemini)
+
+        if is_gemini:
+            self.engine_badge.setText("Gemini AI (Cloud BYOK)")
+            self.engine_badge.setStyleSheet("""
+                QLabel {
+                    color: #1D4ED8;
+                    background-color: #EFF6FF;
+                    border: 1px solid #BFDBFE;
+                    border-radius: 6px;
+                    padding: 3px 8px;
+                    font-size: 11px;
+                    font-weight: 500;
+                }
+            """)
+        else:
+            self.engine_badge.setText("Meta MMS-TTS Khmer (Offline)")
+            self.engine_badge.setStyleSheet("""
+                QLabel {
+                    color: #0F6B58;
+                    background-color: #ECFDF5;
+                    border: 1px solid #A7F3D0;
+                    border-radius: 6px;
+                    padding: 3px 8px;
+                    font-size: 11px;
+                    font-weight: 500;
+                }
+            """)
+
+        cfg = load_config()
+        cfg["tts_engine"] = self.current_engine
+        save_config(cfg)
+        self.engineChanged.emit(self.current_engine)
+
+    def on_engine_tab_changed(self, idx: int):
+        target = "gemini" if idx == 1 else "mms_khmer"
+        self.set_engine(target)
+
+    def reset_gemini_instruction(self):
+        """Restores default single-speaker code-switching instruction."""
+        self.gemini_instruction_edit.setPlainText(DEFAULT_SPEECH_INSTRUCTION)
 
     # -------------------------------------------------------------------------
     # Card 3: Result Player & Export
@@ -456,6 +629,44 @@ class TextToSpeechTab(QWidget):
             QMessageBox.warning(self, "Empty Text", "Please enter some text to synthesize.")
             return
 
+        # Engine 1: Google Gemini AI TTS
+        if self.current_engine == "gemini":
+            if not secure_storage.has_api_key():
+                QMessageBox.warning(
+                    self,
+                    "Gemini API Key Required",
+                    "You have selected Gemini AI TTS, but no API key was found.\n\n"
+                    "Please open the Settings tab to enter and save your Gemini API key."
+                )
+                return
+
+            speed = self.speed_slider.value() / 100.0
+            model = self.gemini_model_combo.currentText() if hasattr(self, "gemini_model_combo") else "gemini-3.8-flash-tts"
+            voice = self.gemini_voice_combo.currentData() if hasattr(self, "gemini_voice_combo") else "Kore"
+            style = self.gemini_style_combo.currentText() if hasattr(self, "gemini_style_combo") else "natural"
+            instruction = self.gemini_instruction_edit.toPlainText().strip() if hasattr(self, "gemini_instruction_edit") else None
+
+            self.generate_btn.setEnabled(False)
+            self.generate_btn.setText("Generating speech...")
+            self.lbl_gen_status.setText("Connecting to Gemini API...")
+
+            self.worker = TTSWorkerThread(
+                text=text,
+                speed=speed,
+                engine_override="gemini",
+                gemini_model=model,
+                gemini_voice=voice,
+                gemini_style=style,
+                gemini_instruction=instruction,
+                parent=self
+            )
+            self.worker.status_updated.connect(self.on_worker_status)
+            self.worker.finished_success.connect(self.on_synthesis_success)
+            self.worker.finished_error.connect(self.on_synthesis_error)
+            self.worker.start()
+            return
+
+        # Engine 2: Local Meta MMS-TTS Khmer
         mode_idx = self.mode_toggle.active_index
         mode = "preset" if mode_idx == 1 else "auto"
 
@@ -498,7 +709,7 @@ class TextToSpeechTab(QWidget):
         self.generate_btn.setText("Generate speech")
         self.lbl_gen_status.setText("")
 
-        engine_display = "Meta MMS-TTS"
+        engine_display = "Gemini AI" if result.engine_name == "gemini" else "Meta MMS-TTS"
         self.latency_label.setText(
             f"Generated in {result.latency_seconds:.1f} s · {result.duration_seconds:.1f} s audio ({engine_display})"
         )
