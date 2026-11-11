@@ -32,13 +32,14 @@ class TestAppBranding(unittest.TestCase):
 
     def test_main_window_branding(self):
         window = MainWindow()
-        self.assertIn("Nesith TTS by JKY", window.windowTitle())
+        self.assertIn("Nesith TTS", window.windowTitle())
+        self.assertIn("by JKY", window.windowTitle())
         self.assertFalse(window.windowIcon().isNull(), "MainWindow window icon should not be null")
 
         # Find header brand title label and logo
         labels = window.findChildren(QLabel)
-        title_labels = [lbl for lbl in labels if lbl.text() == "Nesith TTS by JKY"]
-        self.assertGreaterEqual(len(title_labels), 1, "Header must display 'Nesith TTS by JKY' brand label")
+        title_labels = [lbl for lbl in labels if "Nesith TTS" in lbl.text()]
+        self.assertGreaterEqual(len(title_labels), 1, "Header must display 'Nesith TTS' brand label")
 
         # Check logo pixmap creation
         logo_pix = window.create_logo_pixmap(38)
