@@ -37,7 +37,7 @@ def get_peak_ram_mb() -> float:
 
 def run_spike():
     print("=" * 65)
-    print("KhmerTTS - Meta MMS-TTS Spike Benchmark")
+    print("Nesith TTS - Meta MMS-TTS Spike Benchmark")
     print("Execution Mode: CPU (Intel i7-8750H)")
     print(f"Model Cache: {MODELS_DIR}")
     print(f"Initial RAM: {get_peak_ram_mb():.1f} MB")
@@ -45,13 +45,13 @@ def run_spike():
 
     from core.tts_engine import tts_manager, TTSResult
 
-    km_text = "សួស្តី សូមស្វាគមន៍មកកាន់ KhmerTTS ដែលជាកម្មវិធីសំឡេងកម្ពុជា។"
+    km_text = "សួស្តី សូមស្វាគមន៍មកកាន់ Nesith TTS ដែលជាកម្មវិធីសំឡេងកម្ពុជា។"
     print(f"\n[Step 1/2] Synthesizing Khmer text: '{km_text}'...")
     res_km = tts_manager.synthesize(text=km_text, mode="auto")
     print(f"✓ Khmer generated in {res_km.latency_seconds:.2f} s ({res_km.duration_seconds:.1f} s audio, RTF: {res_km.real_time_factor:.2f})")
     print(f"  File saved: {res_km.temp_wav_path}")
 
-    en_text = "Hello and welcome to KhmerTTS speech studio."
+    en_text = "Hello and welcome to Nesith TTS speech studio."
     print(f"\n[Step 2/2] Synthesizing English text via phonetic engine: '{en_text}'...")
     res_en = tts_manager.synthesize(text=en_text, mode="auto")
     print(f"✓ English generated in {res_en.latency_seconds:.2f} s ({res_en.duration_seconds:.1f} s audio, RTF: {res_en.real_time_factor:.2f})")

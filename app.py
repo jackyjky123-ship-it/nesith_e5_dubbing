@@ -1,5 +1,5 @@
 """
-KhmerTTS - English and Khmer Offline Text-to-Speech Studio
+Nesith TTS - English and Khmer Offline Text-to-Speech Studio
 Entry Point.
 
 Hard rules enforced:
@@ -30,7 +30,7 @@ if os.path.exists(_local_xcb):
         pass
 
 from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QIcon
 from PySide6.QtCore import Qt
 
 from ui.main_window import MainWindow
@@ -38,9 +38,16 @@ from ui.main_window import MainWindow
 
 def setup_application() -> QApplication:
     # Enable high-DPI scaling
-    app = QApplication(sys.argv)
-    app.setApplicationName("KhmerTTS")
-    app.setOrganizationName("KhmerTTS")
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
+    app.setApplicationName("Nesith TTS by JKY")
+    app.setOrganizationName("Nesith TTS by JKY")
+
+    # Set application window icon
+    icon_path = os.path.join(PROJECT_DIR, "assets", "logo.png")
+    if os.path.exists(icon_path):
+        app.setWindowIcon(QIcon(icon_path))
 
     # Set up global font with Khmer support fallback
     font = QFont()

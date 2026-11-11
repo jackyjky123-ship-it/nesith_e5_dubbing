@@ -1,4 +1,4 @@
-# KhmerTTS: English and Khmer Text-to-Speech Desktop Studio
+# Nesith TTS: English and Khmer Text-to-Speech Desktop Studio
 
 A lightweight, 100% offline desktop application for Khmer and English text-to-speech synthesis using single Meta MMS-TTS Khmer neural engine (`facebook/mms-tts-khm`) with advanced phonetic transliteration.
 

@@ -1,6 +1,6 @@
-# AGENT.md: Rules for AI Agents Working on KhmerTTS
+# AGENT.md: Rules for AI Agents Working on Nesith TTS
 
-KhmerTTS is a free, offline desktop app for English and Khmer text-to-speech synthesis using single Meta MMS-TTS Khmer engine with advanced phonetic transliteration. Read `PLAN.md` first. If this file and `PLAN.md` disagree, ask the owner before acting.
+Nesith TTS is a free, offline desktop app for English and Khmer text-to-speech synthesis using single Meta MMS-TTS Khmer engine with advanced phonetic transliteration. Read `PLAN.md` first. If this file and `PLAN.md` disagree, ask the owner before acting.
 
 ## 1. Hard rules (never break these)
 

@@ -305,6 +305,9 @@ TECH_LOANWORDS: Dict[str, str] = {
     "khmer": "ខ្មែរ",
     "khmertts": "ខ្មែរ ធីធីអេស",
     "khmerdub": "ខ្មែរដាប់",
+    "nesith": "និស្សិត",
+    "nesithtts": "និស្សិត ធីធីអេស",
+    "nesith tts": "និស្សិត ធីធីអេស",
 
     # Pronouns & Determiners
     "the": "ដឹ",

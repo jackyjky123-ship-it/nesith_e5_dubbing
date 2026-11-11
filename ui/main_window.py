@@ -1,9 +1,10 @@
 """
-Main Application Window for KhmerDub.
+Main Application Window for Nesith TTS.
 Hosts the top navigation header bar, segmented tab switcher,
 backend status indicator, and stacked view pages.
 """
 
+import os
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QStackedWidget, QFrame
@@ -24,9 +25,14 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("KhmerTTS - English and Khmer Speech Studio")
+        self.setWindowTitle("Nesith TTS studio by JKY ")
         self.resize(1180, 800)
         self.setMinimumSize(980, 660)
+
+        # Set official window icon
+        logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "logo.png")
+        if os.path.exists(logo_path):
+            self.setWindowIcon(QIcon(logo_path))
 
         # Apply global stylesheet
         self.setStyleSheet(GLOBAL_STYLESHEET)
@@ -80,8 +86,8 @@ class MainWindow(QMainWindow):
 
         # Logo Icon Box
         logo_label = QLabel()
-        logo_label.setFixedSize(36, 36)
-        logo_pixmap = self.create_logo_pixmap(36)
+        logo_label.setFixedSize(38, 38)
+        logo_pixmap = self.create_logo_pixmap(38)
         logo_label.setPixmap(logo_pixmap)
         brand_layout.addWidget(logo_label)
 
@@ -90,7 +96,7 @@ class MainWindow(QMainWindow):
         title_box.setSpacing(1)
         title_box.setAlignment(Qt.AlignVCenter)
         
-        lbl_title = QLabel("KhmerTTS")
+        lbl_title = QLabel("Nesith TTS")
         lbl_title.setFont(QFont("Segoe UI", 13, QFont.Bold))
         lbl_title.setStyleSheet("color: #111827;")
         
@@ -137,7 +143,7 @@ class MainWindow(QMainWindow):
         self.header_status_dot.setStyleSheet("color: #10B981; font-size: 14px;")
         status_box.addWidget(self.header_status_dot)
 
-        self.header_status_text = QLabel("Meta MMS-TTS")
+        self.header_status_text = QLabel("Local model")
         self.header_status_text.setStyleSheet("color: #374151; font-size: 12px; font-weight: 500;")
         status_box.addWidget(self.header_status_text)
 
@@ -159,7 +165,7 @@ class MainWindow(QMainWindow):
             from core.config import get_active_device
             device_str = get_active_device().upper()
             self.header_status_dot.setStyleSheet("color: #10B981; font-size: 14px;")
-            self.header_status_text.setText(f"Meta MMS-TTS ({device_str})")
+            self.header_status_text.setText(f"Local model ({device_str})")
 
     def switch_tab(self, index: int):
         prev_index = self.stack.currentIndex()
@@ -205,7 +211,13 @@ class MainWindow(QMainWindow):
                 """)
 
     def create_logo_pixmap(self, size: int) -> QPixmap:
-        """Draws the emerald soundwave logo icon matching the design mockup."""
+        """Loads the official Nesith TTS logo icon, or draws procedural fallback."""
+        logo_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "logo.png")
+        if os.path.exists(logo_path):
+            pix = QPixmap(logo_path)
+            if not pix.isNull():
+                return pix.scaled(size, size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+
         pixmap = QPixmap(size, size)
         pixmap.fill(Qt.transparent)
 

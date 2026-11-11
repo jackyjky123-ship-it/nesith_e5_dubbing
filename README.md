@@ -1,4 +1,4 @@
-# Nesith TTS (KhmerTTS) - Desktop Text-to-Speech Studio
+# Nesith TTS - Desktop Text-to-Speech Studio
 
 A modern Windows desktop Text-to-Speech (TTS) application for natural **Khmer and English speech synthesis**, supporting both high-speed offline local synthesis (Meta MMS-TTS) and studio-grade cloud speech generation powered by **Google Gemini TTS** with a **Bring Your Own Key (BYOK)** architecture.
 
